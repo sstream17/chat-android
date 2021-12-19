@@ -61,6 +61,46 @@ fun Email(
 }
 
 @Composable
+fun Username(
+    usernameState: TextFieldState,
+    imeAction: ImeAction = ImeAction.Next,
+    onImeAction: () -> Unit = {}
+) {
+    OutlinedTextField(
+        value = usernameState.text,
+        onValueChange = {
+            usernameState.text = it
+        },
+        label = {
+            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                Text(
+                    text = "Username",
+                    style = MaterialTheme.typography.body2
+                )
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { focusState ->
+                usernameState.onFocusChange(focusState.isFocused)
+                if (!focusState.isFocused) {
+                    usernameState.enableShowErrors()
+                }
+            },
+        textStyle = MaterialTheme.typography.body2,
+        isError = usernameState.showErrors(),
+        keyboardOptions = KeyboardOptions.Default.copy(imeAction = imeAction),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                onImeAction()
+            }
+        )
+    )
+
+    usernameState.getError()?.let { error -> TextFieldError(textError = error) }
+}
+
+@Composable
 fun Password(
     label: String,
     passwordState: TextFieldState,

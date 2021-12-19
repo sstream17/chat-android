@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
 import com.stream_suite.chat.MainActivity
 import com.stream_suite.chat.ui.components.EmailState
@@ -32,9 +33,15 @@ class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Login { email, password ->
-                signIn(email, password)
-            }
+            Login(
+                onClickSignIn = { email, password ->
+                    signIn(email, password)
+                },
+                onClickCreateAccount = { email, password, username
+                    ->
+                    createAccount(email, password, username)
+                }
+            )
         }
 
         auth = Firebase.auth
@@ -55,6 +62,26 @@ class LoginActivity : ComponentActivity() {
         return
     }
 
+    private fun createAccount(email: String, password: String, username: String) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    val profileUpdates = userProfileChangeRequest {
+                        displayName = username
+                    }
+                    user!!.updateProfile(profileUpdates)
+                    returnToMainActivity()
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Toast.makeText(
+                        baseContext, "Authentication failed.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+    }
+
     private fun signIn(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
@@ -72,7 +99,10 @@ class LoginActivity : ComponentActivity() {
 }
 
 @Composable
-fun Login(onClickSignIn: (String, String) -> Unit) {
+fun Login(
+    onClickSignIn: (String, String) -> Unit,
+    onClickCreateAccount: (String, String, String) -> Unit
+) {
     ChatTheme {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colors.background) {
@@ -81,6 +111,7 @@ fun Login(onClickSignIn: (String, String) -> Unit) {
                 LoginNavHost(
                     navController,
                     onClickSignIn,
+                    onClickCreateAccount,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -92,6 +123,7 @@ fun Login(onClickSignIn: (String, String) -> Unit) {
 fun LoginNavHost(
     navController: NavHostController,
     onClickSignIn: (String, String) -> Unit,
+    onClickCreateAccount: (String, String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val emailState = remember { EmailState() }
@@ -109,7 +141,10 @@ fun LoginNavHost(
             )
         }
         composable(CreateAccount.name) {
-            CreateAccount()
+            CreateAccount(
+                emailState = emailState,
+                onClickCreateAccount = onClickCreateAccount
+            )
         }
         composable(SignIn.name) {
             SignIn(
@@ -124,5 +159,5 @@ fun LoginNavHost(
 @Preview(showBackground = true)
 @Composable
 fun LoginPreview() {
-    Login { _, _ -> }
+    Login(onClickSignIn = { _, _ -> }, onClickCreateAccount = { _, _, _ -> })
 }

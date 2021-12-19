@@ -6,10 +6,10 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MainView()
+            MainView { signOut() }
         }
 
         if (!allPermissionsGranted()) {
@@ -71,6 +71,12 @@ class MainActivity : ComponentActivity() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun signOut() {
+        auth.signOut()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
@@ -78,14 +84,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainView() {
+fun MainView(signOut: () -> Unit) {
     ChatTheme {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colors.background) {
             val navController = rememberNavController()
             Scaffold {
                 MainNavHost(navController)
-                Text("Spencer Chat", fontSize = 30.sp)
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Spencer Chat", fontSize = 30.sp)
+                    Button(onClick = signOut) {
+                        Text("Sign out")
+                    }
+                }
             }
         }
     }
@@ -127,5 +141,5 @@ private fun navigateToPhotoEditorWithUri(navController: NavHostController, uriEn
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    MainView()
+    MainView {}
 }
