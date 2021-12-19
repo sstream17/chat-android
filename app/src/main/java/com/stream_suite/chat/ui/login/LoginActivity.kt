@@ -1,6 +1,8 @@
 package com.stream_suite.chat.ui.login
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
@@ -16,34 +18,82 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.stream_suite.chat.MainActivity
 import com.stream_suite.chat.ui.components.EmailState
 import com.stream_suite.chat.ui.login.LoginScreens.*
 import com.stream_suite.chat.ui.theme.ChatTheme
 
 class LoginActivity : ComponentActivity() {
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Login()
+            Login { email, password ->
+                signIn(email, password)
+            }
         }
+
+        auth = Firebase.auth
+    }
+
+    public override fun onStart() {
+        super.onStart()
+
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            returnToMainActivity()
+        }
+    }
+
+    private fun returnToMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+        return
+    }
+
+    private fun signIn(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    returnToMainActivity()
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Toast.makeText(
+                        baseContext, "Authentication failed.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
     }
 }
 
 @Composable
-fun Login() {
+fun Login(onClickSignIn: (String, String) -> Unit) {
     ChatTheme {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colors.background) {
             val navController = rememberNavController()
             Scaffold(modifier = Modifier.padding(16.dp)) { innerPadding ->
-                LoginNavHost(navController, modifier = Modifier.padding(innerPadding))
+                LoginNavHost(
+                    navController,
+                    onClickSignIn,
+                    modifier = Modifier.padding(innerPadding)
+                )
             }
         }
     }
 }
 
 @Composable
-fun LoginNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+fun LoginNavHost(
+    navController: NavHostController,
+    onClickSignIn: (String, String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val emailState = remember { EmailState() }
 
     NavHost(
@@ -63,7 +113,8 @@ fun LoginNavHost(navController: NavHostController, modifier: Modifier = Modifier
         }
         composable(SignIn.name) {
             SignIn(
-                emailState = emailState
+                emailState = emailState,
+                onClickSignIn = onClickSignIn
             )
         }
     }
@@ -73,5 +124,5 @@ fun LoginNavHost(navController: NavHostController, modifier: Modifier = Modifier
 @Preview(showBackground = true)
 @Composable
 fun LoginPreview() {
-    Login()
+    Login { _, _ -> }
 }

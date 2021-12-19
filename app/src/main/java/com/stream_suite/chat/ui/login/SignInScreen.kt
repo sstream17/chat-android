@@ -15,7 +15,7 @@ import com.stream_suite.chat.ui.components.Password
 import com.stream_suite.chat.ui.components.TextFieldState
 
 @Composable
-fun SignIn(emailState: EmailState) {
+fun SignIn(emailState: EmailState, onClickSignIn: (String, String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         val focusRequester = remember { FocusRequester() }
         Email(emailState, onImeAction = { focusRequester.requestFocus() })
@@ -28,12 +28,13 @@ fun SignIn(emailState: EmailState) {
             label = "Password",
             passwordState = passwordState,
             modifier = Modifier.focusRequester(focusRequester),
-            onImeAction = { /* TODO: Sign in with existing account */ }
+            onImeAction = { onClickSignIn(emailState.text, passwordState.text) }
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { /* TODO: Sign in with existing account */ },
+            onClick = { onClickSignIn(emailState.text, passwordState.text) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),

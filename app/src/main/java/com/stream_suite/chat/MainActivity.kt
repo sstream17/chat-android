@@ -1,6 +1,7 @@
 package com.stream_suite.chat
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -28,6 +29,7 @@ import com.stream_suite.chat.ui.camera.Camera
 import com.stream_suite.chat.ui.camera.MainScreens.Camera
 import com.stream_suite.chat.ui.camera.MainScreens.PhotoEditor
 import com.stream_suite.chat.ui.camera.PhotoEditor
+import com.stream_suite.chat.ui.login.LoginActivity
 import com.stream_suite.chat.ui.theme.ChatTheme
 
 class MainActivity : ComponentActivity() {
@@ -54,13 +56,13 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        /*auth = Firebase.auth
+        auth = Firebase.auth
         if (auth.currentUser == null) {
             // Not signed in, launch the Sign In activity
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
-        }*/
+        }
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
