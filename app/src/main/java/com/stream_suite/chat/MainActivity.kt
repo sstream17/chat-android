@@ -6,13 +6,13 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -26,14 +26,18 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.stream_suite.chat.ui.camera.Camera
-import com.stream_suite.chat.ui.camera.MainScreens.Camera
-import com.stream_suite.chat.ui.camera.MainScreens.PhotoEditor
+import com.stream_suite.chat.ui.camera.Conversations
+import com.stream_suite.chat.ui.camera.ConversationsViewModel
+import com.stream_suite.chat.ui.camera.MainScreens.*
 import com.stream_suite.chat.ui.camera.PhotoEditor
 import com.stream_suite.chat.ui.login.LoginActivity
 import com.stream_suite.chat.ui.theme.ChatTheme
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
+    private val conversationsViewModel: ConversationsViewModel by viewModels {
+        ConversationsViewModel.ConversationViewModelFactory((application as ChatApplication).repository)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +51,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MainView { signOut() }
+            MainView({ signOut() }, conversationsViewModel)
         }
 
         if (!allPermissionsGranted()) {
@@ -84,13 +88,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainView(signOut: () -> Unit) {
+fun MainView(signOut: () -> Unit, conversationsViewModel: ConversationsViewModel) {
     ChatTheme {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colors.background) {
             val navController = rememberNavController()
             Scaffold {
-                MainNavHost(navController)
+                MainNavHost(navController, conversationsViewModel)
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -106,16 +110,23 @@ fun MainView(signOut: () -> Unit) {
 }
 
 @Composable
-fun MainNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+fun MainNavHost(
+    navController: NavHostController,
+    conversationsViewModel: ConversationsViewModel,
+    modifier: Modifier = Modifier
+) {
     NavHost(
         navController = navController,
-        startDestination = Camera.name,
+        startDestination = Conversations.name,
         modifier = modifier
     ) {
         composable(Camera.name) {
             Camera { uri ->
                 navigateToPhotoEditorWithUri(navController, uri)
             }
+        }
+        composable(Conversations.name) {
+            Conversations(conversationsViewModel)
         }
         val photoEditorName = PhotoEditor.name
         composable(
@@ -136,10 +147,4 @@ fun MainNavHost(navController: NavHostController, modifier: Modifier = Modifier)
 
 private fun navigateToPhotoEditorWithUri(navController: NavHostController, uriEncoded: String) {
     navController.navigate("${PhotoEditor.name}/$uriEncoded")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    MainView {}
 }

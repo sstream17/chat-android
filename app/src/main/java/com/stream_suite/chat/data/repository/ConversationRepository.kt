@@ -6,7 +6,7 @@ import com.stream_suite.chat.data.entity.Conversation
 import kotlinx.coroutines.flow.Flow
 
 class ConversationRepository(private val conversationDao: ConversationDao) {
-    val allWords: Flow<List<Conversation>> = conversationDao.getAllConversations()
+    val allConversations: Flow<List<Conversation>> = conversationDao.getAllConversations()
 
     @WorkerThread
     suspend fun insert(conversation: Conversation) {

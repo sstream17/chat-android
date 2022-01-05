@@ -1,6 +1,7 @@
 package com.stream_suite.chat.ui.camera
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -10,6 +11,9 @@ enum class MainScreens(
 ) {
     Camera(
         icon = Icons.Filled.Phone
+    ),
+    Conversations(
+        icon = Icons.Filled.Home
     ),
     PhotoEditor(
         icon = Icons.Filled.Info

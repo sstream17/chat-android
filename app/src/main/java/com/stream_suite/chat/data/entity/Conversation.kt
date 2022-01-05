@@ -5,7 +5,8 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Conversation(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
     val name: String
-)
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0
+}
